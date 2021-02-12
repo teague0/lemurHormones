@@ -16,6 +16,7 @@ gc <- gc %>% filter(!is.na(mean.pg))
 
 sampleInfo <- read.csv("~/ownCloud/Ring-tailed lemur/Catta Hormones/LCatta sample list update2.csv")
 ageClasses <- read_sheet("https://docs.google.com/spreadsheets/d/13jCF6xD0UBmJJ08J2d6z-4xHEV2_L5NY91MaNBlppuQ/edit?usp=sharing", sheet = "AgeWeeksClass")
+seasons <- read_sheet("https://docs.google.com/spreadsheets/d/13jCF6xD0UBmJJ08J2d6z-4xHEV2_L5NY91MaNBlppuQ/edit?usp=sharing", sheet = "seasons")
 
 #get a good date-time for the sample collection
 sampleInfo$collectionDate <- mdy_hm(paste(sampleInfo$dat.us, sampleInfo$time, sep=" "))
@@ -37,9 +38,25 @@ gc$pg <- gc$pg.ml * 5 #pg/ml x the dilution factor (5)
 gc$pg.g <- gc$pg/gc$mass.g #pg / sample mass
 gc$ng.g <- gc$pg.g/1000
 gc <- gc %>% left_join(ageClasses, by = c("age.wks" = "age.weeks"))
+gc$age.class <- factor(gc$age.class, 
+                          levels=c("Infant-1", "Infant-2", "Juvenile-1", "Juvenile-2", "Subadult", "Adult")) #create an ordered factor so it will plot by correct age on X axis
+gc$month <- month(gc$collectionDate)
+gc <- gc %>% left_join(seasons, by = c("month" = "month.no"))
+gc$season <- factor(gc$season,
+                    levels = c("Gestation", "Lactation", "Weaning", "Recovery"))
 
 ggplot(gc, aes(x = age.mo, y = log(pg.g), color= sex))+
   geom_point()
 
 ggplot(gc)+
-  geom_boxplot(aes(x = age.class, y = log(pg.g), color=sex))
+  geom_boxplot(aes(x = age.class, y = log(pg.g), fill=sex))+
+  theme_classic()+
+  labs(x = "Age Class", 
+       y = expression(paste("Fecal glucocorticoids [ln(pg ", g^-1, ")]", sep= "")))
+
+ggplot(gc)+
+  geom_boxplot(aes(x = season, y = log(pg.g), fill = sex))+
+  facet_wrap(~age.class)+
+  theme_classic()
+
+
