@@ -45,6 +45,10 @@ gc <- gc %>% left_join(seasons, by = c("month" = "month.no"))
 gc$season <- factor(gc$season,
                     levels = c("Gestation", "Lactation", "Weaning", "Recovery"))
 
+ss1 <- gs4_create("glucocortsCleaned_RTL", sheets = gc)
+drive_mv("glucocortsCleaned_RTL", path = "~/GBIO 450 - Blue/Data/")
+
+
 ggplot(gc, aes(x = age.mo, y = log(pg.g), color= sex))+
   geom_point()
 
