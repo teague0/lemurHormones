@@ -18,8 +18,22 @@ gc <- read_sheet("https://docs.google.com/spreadsheets/d/12j8bzWNEdZ3SdTUqrbkXAa
 aggMark <- read_sheet("https://docs.google.com/spreadsheets/d/1t4rXq04tns6TUvjkL8m5a8mtZsi5SA6bNBLzbrY9zmU/edit?usp=sharing")
 ```
 
-T
-```{r pressure, echo=FALSE}
+### Join together data frames
+```{r joins}
+library(lubridate)
+
+#Reformat dates to play nicely
+gc$date <- as.Date(gc$collectionDate)
+aggMark$date <- mdy(aggMark$date)
+
+#Change to upper case
+aggMark$an.id <- toupper(aggMark$an.id)
+gc$an.id <- toupper(gc$an.id)
+
+aggMark$an.id <- str_replace_all(aggMark$an.id, "\\.", "")
+
+gcBehav <- aggMark %>% left_join()
+
 plot(pressure)
 ```
 
