@@ -33,7 +33,34 @@ aggMark$an.id <- str_replace_all(aggMark$an.id, "\\.", "")
 
 gcBehav <- aggMark %>% left_join(gc, by =c("an.id", "date"))
 #gcBehav has 1499 obs, aggMark has 1417. There were dates in the gc data not in the aggMark data.
+```
+
+#### Hormone concentrations and behavior
+We need to convert the total aggression / submission values to rates. The total times observed are in milliseconds. Divide by 60000 to get minutes. Observation sessions were 12 minutes long, FYI
+
+```{r}
+gcBehav <- gcBehav %>% 
+  mutate(submit.rt = submit /(total.time.observed/60000),
+         aggress.rt = aggress /(total.time.observed/60000),
+         subRcvd.rt = submit.received /(total.time.observed/60000),
+         aggRcvd.rt = aggress /(total.time.observed/60000),
+         anogenMark.rt = anogen.mark / minutes.observed,
+         wristMark.rt = wrist.mark / minutes.observed,
+         tailAnoint.rt = tail.anoint / minutes.observed,
+         tailWaive.rt = tail.waive / minutes.observed)
+```
+
+Plot
+
+```{r}
+
+ggplot(gcBehav)+
+  geom_point(aes(x = aggress.rt, y = ng.g, color = sex.y))+
+  xlim(0, 0.05)
 
 ```
+
+
+
 
 
