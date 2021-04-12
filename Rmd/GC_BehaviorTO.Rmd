@@ -2,7 +2,8 @@
 title: "GC_BehaviorTO"
 author: "Teague O'Mara"
 date: "2021-03-31"
-output: html_document
+output: html_document: 
+        keep_md: yes
 ---
 
 ```{r setup, include=FALSE}
@@ -48,7 +49,18 @@ gcBehav <- gcBehav %>%
          wristMark.rt = wrist.mark / minutes.observed,
          tailAnoint.rt = tail.anoint / minutes.observed,
          tailWaive.rt = tail.waive / minutes.observed)
+
 ```
+
+I'm going to push this to a google sheet so there is a stable copy of it. This is commented out.
+
+```{r}
+library(googlesheets4)
+library(googledrive)
+#gs4_create("gc_Behavior_RTL", sheets = gcBehav)
+#drive_mv("gc_Behavior_RTL", path = "~/GBIO 450 - Blue/Data/")
+```
+
 
 Plot
 
