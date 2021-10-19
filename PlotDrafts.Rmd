@@ -1,0 +1,101 @@
+---
+title: "GC Draft Plot"
+output: 
+  html_document:
+    keep_md:true
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, message = FALSE)
+```
+
+## Ring-tailed lemur fecal glucocorticoids
+
+Read in processed data
+
+```{r}
+library(tidyverse)
+library(googlesheets4)
+
+aggGC_full <- read_sheet("https://docs.google.com/spreadsheets/d/12EB2WXBiqfwHPIQ_2tqOvkV0i8Yzjoc5yhMlkAOtUv0/edit?usp=sharing")
+```
+
+## Targeted plots & analysis 
+1. Seasonality of GC in adults:
+    Do GC's change predictably with reproductive state in females (gestation, lactation, weaning, etc)
+    
+```{r}
+library(gghalves)
+library(lme4)
+library(car)
+
+aggGC_full %>% filter(!is.na(season), age.2wk > 150) %>% 
+ggplot()+
+  geom_half_boxplot(aes(x = season, y = log(mean.ngg), color = sex), side = "r")+
+  geom_half_point(aes(x = season, y = log(mean.ngg), color = sex), side = "l", alpha = 0.6)+
+  ggtitle("Fecal GC in RTL older than 150 weeks")
+  theme_bw()
+
+aggGC_full.noNA <- aggGC_full %>% filter(!is.na(season))
+
+adultSeason.lm <- lmer(log(mean.ngg)~season*sex + (1|an.id), data = aggGC_full.noNA[aggGC_full.noNA$age.2wk > 150, ])
+Anova(adultSeason.lm)
+summary(adultSeason.lm)
+
+```
+
+A mixed effects linear model shows only a signficant effect of sex on fecal GC's. Not of season, and there is no interaction between season & sex.
+
+2. Aggression rates in adults across season & sex
+
+```{r}
+
+aggRc <- aggGC_full %>% filter(!is.na(season), age.2wk > 150) %>% 
+ggplot()+
+  geom_half_boxplot(aes(x = season, y = log(wkAggRcv.rt), color = sex), side = "r")+
+  geom_half_point(aes(x = season, y = log(wkAggRcv.rt), color = sex), side = "l", alpha = 0.6)+
+  theme_bw()+
+  theme(legend.position = c(0.1, 0.85))
+
+aggDt <- aggGC_full %>% filter(!is.na(season), age.2wk > 150) %>% 
+ggplot()+
+  geom_half_boxplot(aes(x = season, y = log(wkAggress.rt), color = sex), side = "r")+
+  geom_half_point(aes(x = season, y = log(wkAggress.rt), color = sex), side = "l", alpha = 0.6)+
+  theme_bw()+
+    theme(legend.position = "none")
+
+library(cowplot)
+plot_grid(aggRc, aggDt, nrow = 2)
+
+adultSeasonAggRc.lm <- lmer(wkAggRcv.rt~season*sex + (1|an.id), data = aggGC_full)
+Anova(adultSeasonAggRc.lm)
+summary(adultSeasonAggRc.lm)
+
+
+```
+
+3. Fecal GC ~ Age in weeks * sex
+
+```{r}
+
+agePlot <- aggGC_full %>% dplyr::filter(age.2wk <= 150) %>%
+  ggplot()+
+  geom_point(aes(x = age.2wk, y = log(mean.ngg), color = sex), alpha = 0.6)+
+  geom_smooth(aes(x = age.2wk, y = log(mean.ngg), color = sex))+
+  theme_bw()
+
+
+bplot <- aggGC_full %>% dplyr::filter(age.2wk <= 150) %>%
+  ggplot()+
+  geom_half_boxplot(aes(x = ageClass, y = log(mean.ngg), color = sex), side = "r")+
+  geom_half_point(aes(x = ageClass, y = log(mean.ngg), color = sex), side = "l", alpha = 0.6)+
+  theme_bw()
+
+plot_grid(agePlot, bplot, nrow = 2)
+
+```
+
+
+4. Aggression Received & Dealt ~ Age in weeks * sex
+
+
