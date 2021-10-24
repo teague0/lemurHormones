@@ -1,12 +1,14 @@
 ---
-title: "GC Draft Plot"
-output: 
+title:
+output:
   html_document:
-    keep_md:true
+    keep_md: TRUE
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE, message = FALSE)
+knitr::opts_chunk$set(echo = TRUE, 
+                      message = FALSE,
+                      warning = FALSE)
 ```
 
 ## Ring-tailed lemur fecal glucocorticoids
@@ -33,7 +35,7 @@ aggGC_full %>% filter(!is.na(season), age.2wk > 150) %>%
 ggplot()+
   geom_half_boxplot(aes(x = season, y = log(mean.ngg), color = sex), side = "r")+
   geom_half_point(aes(x = season, y = log(mean.ngg), color = sex), side = "l", alpha = 0.6)+
-  ggtitle("Fecal GC in RTL older than 150 weeks")
+  ggtitle("Fecal GC in RTL older than 150 weeks")+
   theme_bw()
 
 aggGC_full.noNA <- aggGC_full %>% filter(!is.na(season))
@@ -98,4 +100,26 @@ plot_grid(agePlot, bplot, nrow = 2)
 
 4. Aggression Received & Dealt ~ Age in weeks * sex
 
+```{r}
+aggPlot <- aggGC_full %>% dplyr::filter(age.2wk <= 150) %>%
+  ggplot()+
+  geom_point(aes(x = age.2wk, y = log(wkAggress.rt), color = sex), alpha = 0.6)+
+  geom_smooth(aes(x = age.2wk, y = log(wkAggress.rt), color = sex))+
+  theme_bw()
+
+aggRcPlot <- aggGC_full %>% dplyr::filter(age.2wk <= 150) %>%
+  ggplot()+
+  geom_point(aes(x = age.2wk, y = log(wkAggRcv.rt), color = sex), alpha = 0.6)+
+  geom_smooth(aes(x = age.2wk, y = log(wkAggRcv.rt), color = sex))+
+  theme_bw()
+
+bplot <- aggGC_full %>% dplyr::filter(age.2wk <= 150) %>%
+  ggplot()+
+  geom_half_boxplot(aes(x = ageClass, y = log(mean.ngg), color = sex), side = "r")+
+  geom_half_point(aes(x = ageClass, y = log(mean.ngg), color = sex), side = "l", alpha = 0.6)+
+  theme_bw()
+
+plot_grid(aggPlot, aggRcPlot, nrow = 2)
+
+```
 
