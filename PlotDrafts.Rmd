@@ -137,27 +137,27 @@ library(mgcv)
 
 kids <- aggGC_full %>% filter(age.2wk <= 150)
 
-m1 <- gamm(log(mean.ngg)~sex+s(age.2wk),
-                     random = list(an.id=~1),
+m1 <- gam(log(mean.ngg)~sex+s(age.2wk),
            correlation=corAR1(),
                      data = kids)
-summary(m1$gam)
-anova(m1$gam)
+summary(m1)
 par(mfrow=c(2,2))
-gam.check(m1$gam)
+gam.check(m1)
 
 #Slightly more informative residual plots
-fv <- exp(fitted(m1$lme)) ## predicted values (including re)
-rsd <- (m1$gam$y - fv)/sqrt(fv) ## Pearson residuals (Poisson case)
+fv <- exp(fitted(m1)) ## predicted values (including re)
+rsd <- (m1$y - fv)/sqrt(fv) ## Pearson residuals (Poisson case)
 op <- par(mfrow=c(1,2))
 qqnorm(rsd);plot(fv^.5,rsd)
 par(op)
+
+anova(m1)
 ```
 The summary tells us that there is a significant effect of sex (p = 0.0063), and that fecal glucocorticoids change with age (F= 7.33, df = 6.671, p = 6.55e-07). This is what the `anova()` summary also tells us. Everything looks good in the diagnostic plots as well.
 
 <br>
 
-To plot the GAMM correctly, we need to create predicted data sets that account for the individual effects. 
+To plot the GAM correctly, we need to create predicted data sets that account for the individual effects. 
 ```{r}
 library(plyr)
 
@@ -168,7 +168,7 @@ predDat <- ddply(kids,
                  age.2wk = seq(min(age.2wk), max(age.2wk),length = 284))
 
 #extract predicted values from the model & add them to the data frame
-p1 <- predict(m1$gam, newdata = predDat, se = TRUE)
+p1 <- predict(m1, newdata = predDat, se = TRUE)
 predDat$Fit <- p1$fit
 predDat$SE  <- p1$se.fit
 
@@ -201,43 +201,32 @@ kids$an.id <- as.factor(kids$an.id)
 kids$sex <- as.factor(kids$sex)
 
 #I added 1 to the values. Otherwise it freaks out with the ln(0)
-m2 <- gamm(log(wkAggress.rt+1)~sex+s(age.2wk, by = sex) + s(age.2wk, an.id, bs="fs", m=1),
-           family = quasipoisson(link = "log"),
-           random = list(an.id=~1),
-           data = kids)
-summary(m2$gam)
-plot(m2$gam)
-par(mfrow = c(2,2))
-gam.check(m2$gam)
+# m2 <- gamm(log(wkAggress.rt+1)~sex+s(age.2wk, by = sex) + s(age.2wk, an.id, bs="fs", m=1),
+#            family = quasipoisson(link = "log"),
+#            random = list(an.id=~1),
+#            data = kids)
 
-```
-The model check on this looks terrible. Q-Q plot shows a lot of kurtosis (s-curve), and the histogram of the residuals is really skewed. May no log fit?
-
-
-```{r}
-
-#I added 1 to the values. Otherwise it freaks out with the ln(0)
-m2a <- gamm(wkAggress.rt~sex+s(age.2wk),
-                     random = list(an.id=~1),
+m2 <- gam(wkAggress.rt~sex+s(age.2wk),
+           correlation=corAR1(),
                      data = kids)
-summary(m2a$gam)
-plot(m2a$gam)
+summary(m2)
+plot(m2)
 par(mfrow = c(2,2))
-gam.check(m2a$gam)
-
+gam.check(m2)
+anova(m2)
 ```
-
+The model check on this doesn't looks great, but overall there is no effect of sex or age on the aggression rates. 
 
 
 ```{r}
 #Create a data frame to hold the predicted data.
 predDat <- ddply(kids, 
-                 .(sex, an.id), 
+                 .(sex), 
                  summarize,
                  age.2wk = seq(min(age.2wk), max(age.2wk),length = 284))
 
 #extract predicted values from the model & add them to the data frame
-p1 <- predict(m2$gam, newdata = predDat, se = TRUE)
+p1 <- predict(m2, newdata = predDat, se = TRUE)
 predDat$Fit <- p1$fit
 predDat$SE  <- p1$se.fit
 
@@ -262,15 +251,30 @@ ggplot()+
 
 ```
 
+How about aggression received?
 ```{r}
+kids$an.id <- as.factor(kids$an.id)
+kids$sex <- as.factor(kids$sex)
 
 #I added 1 to the values. Otherwise it freaks out with the ln(0)
-m3 <- gamm(log(wkAggRcv.rt+1)~sex+s(age.2wk),
-                     random = list(an.id=~1),
-                     data = kids)
-summary(m3$gam)
-plot(m3$gam)
+# m2 <- gamm(log(wkAggress.rt+1)~sex+s(age.2wk, by = sex) + s(age.2wk, an.id, bs="fs", m=1),
+#            family = quasipoisson(link = "log"),
+#            random = list(an.id=~1),
+#            data = kids)
 
+m3 <- gam(wkAggRcv.rt~sex+s(age.2wk),
+           correlation=corAR1(),
+                     data = kids)
+summary(m3)
+plot(m3)
+par(mfrow = c(2,2))
+gam.check(m3)
+anova(m3)
+```
+The model check on this doesn't looks great, but overall there is no effect of sex or age on the aggression rates. 
+
+
+```{r}
 #Create a data frame to hold the predicted data.
 predDat <- ddply(kids, 
                  .(sex), 
@@ -278,7 +282,7 @@ predDat <- ddply(kids,
                  age.2wk = seq(min(age.2wk), max(age.2wk),length = 284))
 
 #extract predicted values from the model & add them to the data frame
-p1 <- predict(m3$gam, newdata = predDat, se = TRUE)
+p1 <- predict(m3, newdata = predDat, se = TRUE)
 predDat$Fit <- p1$fit
 predDat$SE  <- p1$se.fit
 
@@ -286,7 +290,7 @@ predDat$SE  <- p1$se.fit
 ggplot()+
   geom_point(data = kids, 
              aes(x = age.2wk, 
-                 y = log(wkAggRcv.rt+1), 
+                 y = log(wkAggress.rt+1), 
                  color = sex))+
   labs(x = "age (weeks)", y = expression(paste("weekly aggression received rate", sep = "")))+
   geom_line(data = predDat, 
