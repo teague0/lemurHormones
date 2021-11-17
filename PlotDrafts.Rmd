@@ -31,18 +31,23 @@ library(gghalves)
 library(lme4)
 library(car)
 
-aggGC_full %>% filter(!is.na(season), age.2wk > 150) %>% 
-ggplot()+
+p1 <- aggGC_full %>% filter(!is.na(season), age.2wk > 150) %>% 
+  ggplot()+
   geom_half_boxplot(aes(x = season, y = log(mean.ngg), color = sex), side = "r")+
   geom_half_point(aes(x = season, y = log(mean.ngg), color = sex), side = "l", alpha = 0.6)+
-  ggtitle("Fecal GC in RTL older than 150 weeks")+
+  ggtitle("Fecal GC in ring-tailed lemurs\n older than 150 weeks")+
+  labs(x = " ", 
+       y = expression(paste("fecal GC ln (ng ", g^-1, ")", sep = "")))+
   theme_bw()
+p1
 
 aggGC_full.noNA <- aggGC_full %>% filter(!is.na(season))
 
 adultSeason.lm <- lmer(log(mean.ngg)~season*sex + (1|an.id), data = aggGC_full.noNA[aggGC_full.noNA$age.2wk > 150, ])
 Anova(adultSeason.lm)
 summary(adultSeason.lm)
+
+ggsave(file = "./output/adult_fGC_season.png")
 
 ```
 
@@ -57,13 +62,17 @@ ggplot()+
   geom_half_boxplot(aes(x = season, y = log(wkAggRcv.rt), color = sex), side = "r")+
   geom_half_point(aes(x = season, y = log(wkAggRcv.rt), color = sex), side = "l", alpha = 0.6)+
   theme_bw()+
-  theme(legend.position = c(0.1, 0.85))
+  labs(x = "",
+       y = "ln(rate aggression received)")+
+  theme(legend.position = "none")
 
 aggDt <- aggGC_full %>% filter(!is.na(season), age.2wk > 150) %>% 
 ggplot()+
   geom_half_boxplot(aes(x = season, y = log(wkAggress.rt), color = sex), side = "r")+
   geom_half_point(aes(x = season, y = log(wkAggress.rt), color = sex), side = "l", alpha = 0.6)+
   theme_bw()+
+  labs(x = "",
+       y = "ln(rate aggression given)")+
     theme(legend.position = "none")
 
 library(cowplot)
@@ -73,6 +82,7 @@ adultSeasonAggRc.lm <- lmer(wkAggRcv.rt~season*sex + (1|an.id), data = aggGC_ful
 Anova(adultSeasonAggRc.lm)
 summary(adultSeasonAggRc.lm)
 
+ggsave("./output/AggressionBySeason.png")
 
 ```
 
@@ -84,16 +94,24 @@ agePlot <- aggGC_full %>% dplyr::filter(age.2wk <= 150) %>%
   ggplot()+
   geom_point(aes(x = age.2wk, y = log(mean.ngg), color = sex), alpha = 0.6)+
   geom_smooth(aes(x = age.2wk, y = log(mean.ngg), color = sex))+
-  theme_bw()
+  theme_bw()+
+  labs(x = "age (weeks)", 
+       y = expression(paste("fecal GC ln (ng ", g^-1, ")", sep = "")))+
+  theme(legend.position = "none")
 
 
 bplot <- aggGC_full %>% dplyr::filter(age.2wk <= 150) %>%
   ggplot()+
   geom_half_boxplot(aes(x = ageClass, y = log(mean.ngg), color = sex), side = "r")+
   geom_half_point(aes(x = ageClass, y = log(mean.ngg), color = sex), side = "l", alpha = 0.6)+
-  theme_bw()
+  theme_bw()+
+  labs(x = "", 
+       y = expression(paste("fecal GC ln (ng ", g^-1, ")", sep = "")))+
+  theme(legend.position = "none")
 
 plot_grid(agePlot, bplot, nrow = 2)
+
+ggsave("./output/fGCByAge.png")
 
 ```
 
@@ -105,21 +123,31 @@ aggPlot <- aggGC_full %>% dplyr::filter(age.2wk <= 150) %>%
   ggplot()+
   geom_point(aes(x = age.2wk, y = log(wkAggress.rt), color = sex), alpha = 0.6)+
   geom_smooth(aes(x = age.2wk, y = log(wkAggress.rt), color = sex))+
-  theme_bw()
+  theme_bw()+
+  labs(x = "",
+       y = "ln(aggression rate)")+
+    theme(legend.position = "none")
 
 aggRcPlot <- aggGC_full %>% dplyr::filter(age.2wk <= 150) %>%
   ggplot()+
   geom_point(aes(x = age.2wk, y = log(wkAggRcv.rt), color = sex), alpha = 0.6)+
   geom_smooth(aes(x = age.2wk, y = log(wkAggRcv.rt), color = sex))+
-  theme_bw()
+  theme_bw()+
+   labs(x = "",
+       y = "ln(rate aggression received)")+
+    theme(legend.position = "none")
 
 bplot <- aggGC_full %>% dplyr::filter(age.2wk <= 150) %>%
   ggplot()+
   geom_half_boxplot(aes(x = ageClass, y = log(mean.ngg), color = sex), side = "r")+
   geom_half_point(aes(x = ageClass, y = log(mean.ngg), color = sex), side = "l", alpha = 0.6)+
-  theme_bw()
+  theme_bw()+
+  labs(x = "", 
+       y = expression(paste("fecal GC ln (ng ", g^-1, ")", sep = "")))
 
 plot_grid(aggPlot, aggRcPlot, nrow = 2)
+
+ggsave("./output/aggressByAge_kids.png")
 
 ```
 
@@ -191,6 +219,8 @@ ggplot()+
                      alpha = 0.5)+
   theme_bw()
   #facet_grid(.~sex, scales = "fixed")
+
+ggsave("./output/fGCByAge_GAM.png")
                      
 ```
 
@@ -249,6 +279,7 @@ ggplot()+
                      alpha = 0.5)+
   theme_bw()
 
+ggsave("./output/AggressionByAge_GAM.png")
 ```
 
 How about aggression received?
@@ -305,4 +336,5 @@ ggplot()+
                      alpha = 0.5)+
   theme_bw()
 
+ggsave("./output/AggressionReceivedByAge.png")
 ```

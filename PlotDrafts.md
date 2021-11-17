@@ -29,12 +29,15 @@ library(gghalves)
 library(lme4)
 library(car)
 
-aggGC_full %>% filter(!is.na(season), age.2wk > 150) %>% 
-ggplot()+
+p1 <- aggGC_full %>% filter(!is.na(season), age.2wk > 150) %>% 
+  ggplot()+
   geom_half_boxplot(aes(x = season, y = log(mean.ngg), color = sex), side = "r")+
   geom_half_point(aes(x = season, y = log(mean.ngg), color = sex), side = "l", alpha = 0.6)+
-  ggtitle("Fecal GC in RTL older than 150 weeks")+
+  ggtitle("Fecal GC in ring-tailed lemurs\n older than 150 weeks")+
+  labs(x = " ", 
+       y = expression(paste("fecal GC ln (ng ", g^-1, ")", sep = "")))+
   theme_bw()
+p1
 ```
 
 ![](PlotDrafts_files/figure-html/unnamed-chunk-2-1.png)<!-- -->
@@ -93,6 +96,10 @@ summary(adultSeason.lm)
 ## boundary (singular) fit: see ?isSingular
 ```
 
+```r
+ggsave(file = "./output/adult_fGC_season.png")
+```
+
 A mixed effects linear model shows only a signficant effect of sex on fecal GC's. Not of season, and there is no interaction between season & sex.
 
 2. Aggression rates in adults across season & sex
@@ -104,13 +111,17 @@ ggplot()+
   geom_half_boxplot(aes(x = season, y = log(wkAggRcv.rt), color = sex), side = "r")+
   geom_half_point(aes(x = season, y = log(wkAggRcv.rt), color = sex), side = "l", alpha = 0.6)+
   theme_bw()+
-  theme(legend.position = c(0.1, 0.85))
+  labs(x = "",
+       y = "ln(rate aggression received)")+
+  theme(legend.position = "none")
 
 aggDt <- aggGC_full %>% filter(!is.na(season), age.2wk > 150) %>% 
 ggplot()+
   geom_half_boxplot(aes(x = season, y = log(wkAggress.rt), color = sex), side = "r")+
   geom_half_point(aes(x = season, y = log(wkAggress.rt), color = sex), side = "l", alpha = 0.6)+
   theme_bw()+
+  labs(x = "",
+       y = "ln(rate aggression given)")+
     theme(legend.position = "none")
 
 library(cowplot)
@@ -179,6 +190,10 @@ summary(adultSeasonAggRc.lm)
 ## ssn5-Rcvr:M  0.331 -0.285 -0.184 -0.644 -0.515  0.442  0.289
 ```
 
+```r
+ggsave("./output/AggressionBySeason.png")
+```
+
 3. Fecal GC ~ Age in weeks * sex
 
 
@@ -187,19 +202,29 @@ agePlot <- aggGC_full %>% dplyr::filter(age.2wk <= 150) %>%
   ggplot()+
   geom_point(aes(x = age.2wk, y = log(mean.ngg), color = sex), alpha = 0.6)+
   geom_smooth(aes(x = age.2wk, y = log(mean.ngg), color = sex))+
-  theme_bw()
+  theme_bw()+
+  labs(x = "age (weeks)", 
+       y = expression(paste("fecal GC ln (ng ", g^-1, ")", sep = "")))+
+  theme(legend.position = "none")
 
 
 bplot <- aggGC_full %>% dplyr::filter(age.2wk <= 150) %>%
   ggplot()+
   geom_half_boxplot(aes(x = ageClass, y = log(mean.ngg), color = sex), side = "r")+
   geom_half_point(aes(x = ageClass, y = log(mean.ngg), color = sex), side = "l", alpha = 0.6)+
-  theme_bw()
+  theme_bw()+
+  labs(x = "", 
+       y = expression(paste("fecal GC ln (ng ", g^-1, ")", sep = "")))+
+  theme(legend.position = "none")
 
 plot_grid(agePlot, bplot, nrow = 2)
 ```
 
 ![](PlotDrafts_files/figure-html/unnamed-chunk-4-1.png)<!-- -->
+
+```r
+ggsave("./output/fGCByAge.png")
+```
 
 
 4. Aggression Received & Dealt ~ Age in weeks * sex
@@ -210,24 +235,36 @@ aggPlot <- aggGC_full %>% dplyr::filter(age.2wk <= 150) %>%
   ggplot()+
   geom_point(aes(x = age.2wk, y = log(wkAggress.rt), color = sex), alpha = 0.6)+
   geom_smooth(aes(x = age.2wk, y = log(wkAggress.rt), color = sex))+
-  theme_bw()
+  theme_bw()+
+  labs(x = "",
+       y = "ln(aggression rate)")+
+    theme(legend.position = "none")
 
 aggRcPlot <- aggGC_full %>% dplyr::filter(age.2wk <= 150) %>%
   ggplot()+
   geom_point(aes(x = age.2wk, y = log(wkAggRcv.rt), color = sex), alpha = 0.6)+
   geom_smooth(aes(x = age.2wk, y = log(wkAggRcv.rt), color = sex))+
-  theme_bw()
+  theme_bw()+
+   labs(x = "",
+       y = "ln(rate aggression received)")+
+    theme(legend.position = "none")
 
 bplot <- aggGC_full %>% dplyr::filter(age.2wk <= 150) %>%
   ggplot()+
   geom_half_boxplot(aes(x = ageClass, y = log(mean.ngg), color = sex), side = "r")+
   geom_half_point(aes(x = ageClass, y = log(mean.ngg), color = sex), side = "l", alpha = 0.6)+
-  theme_bw()
+  theme_bw()+
+  labs(x = "", 
+       y = expression(paste("fecal GC ln (ng ", g^-1, ")", sep = "")))
 
 plot_grid(aggPlot, aggRcPlot, nrow = 2)
 ```
 
 ![](PlotDrafts_files/figure-html/unnamed-chunk-5-1.png)<!-- -->
+
+```r
+ggsave("./output/aggressByAge_kids.png")
+```
 
 ### GAMM that includes individual ID.
 We'll use a Generalized Additive Mixed Effects Model. A GAM is an extensions of a linear regression that can be used for curved data. Relationships between the individual predictors and the dependent variable follow smooth patterns that can be linear or nonlinear. We can estimate these smooth relationships simultaneously and then predict **g(E(Y)))** by simply adding them up.
@@ -244,11 +281,10 @@ library(mgcv)
 
 kids <- aggGC_full %>% filter(age.2wk <= 150)
 
-m1 <- gamm(log(mean.ngg)~sex+s(age.2wk),
-                     random = list(an.id=~1),
+m1 <- gam(log(mean.ngg)~sex+s(age.2wk),
            correlation=corAR1(),
                      data = kids)
-summary(m1$gam)
+summary(m1)
 ```
 
 ```
@@ -261,23 +297,57 @@ summary(m1$gam)
 ## 
 ## Parametric coefficients:
 ##             Estimate Std. Error t value Pr(>|t|)    
-## (Intercept)   1.8765     0.0809  23.195  < 2e-16 ***
-## sexMale      -0.3176     0.1159  -2.741  0.00647 ** 
+## (Intercept)  1.87005    0.05814  32.167  < 2e-16 ***
+## sexMale     -0.27655    0.08575  -3.225  0.00138 ** 
 ## ---
 ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 ## 
 ## Approximate significance of smooth terms:
 ##              edf Ref.df     F p-value    
-## s(age.2wk) 6.617  6.617 7.215 4.9e-07 ***
+## s(age.2wk) 7.363  8.334 7.069  <2e-16 ***
 ## ---
 ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 ## 
-## R-sq.(adj) =  0.167   
-##   Scale est. = 0.54597   n = 341
+## R-sq.(adj) =  0.172   Deviance explained = 19.2%
+## GCV = 0.61748  Scale est. = 0.60052   n = 341
 ```
 
 ```r
-anova(m1$gam)
+par(mfrow=c(2,2))
+gam.check(m1)
+```
+
+![](PlotDrafts_files/figure-html/unnamed-chunk-6-1.png)<!-- -->
+
+```
+## 
+## Method: GCV   Optimizer: magic
+## Smoothing parameter selection converged after 8 iterations.
+## The RMS GCV score gradient at convergence was 1.370951e-05 .
+## The Hessian was positive definite.
+## Model rank =  11 / 11 
+## 
+## Basis dimension (k) checking results. Low p-value (k-index<1) may
+## indicate that k is too low, especially if edf is close to k'.
+## 
+##              k'  edf k-index p-value
+## s(age.2wk) 9.00 7.36    0.98    0.39
+```
+
+```r
+#Slightly more informative residual plots
+fv <- exp(fitted(m1)) ## predicted values (including re)
+rsd <- (m1$y - fv)/sqrt(fv) ## Pearson residuals (Poisson case)
+op <- par(mfrow=c(1,2))
+qqnorm(rsd);plot(fv^.5,rsd)
+```
+
+![](PlotDrafts_files/figure-html/unnamed-chunk-6-2.png)<!-- -->
+
+```r
+par(op)
+
+anova(m1)
 ```
 
 ```
@@ -289,50 +359,18 @@ anova(m1$gam)
 ## log(mean.ngg) ~ sex + s(age.2wk)
 ## 
 ## Parametric Terms:
-##     df     F p-value
-## sex  1 7.511 0.00647
+##     df    F p-value
+## sex  1 10.4 0.00138
 ## 
 ## Approximate significance of smooth terms:
 ##              edf Ref.df     F p-value
-## s(age.2wk) 6.617  6.617 7.215 4.9e-07
-```
-
-```r
-par(mfrow=c(2,2))
-gam.check(m1$gam)
-```
-
-![](PlotDrafts_files/figure-html/unnamed-chunk-6-1.png)<!-- -->
-
-```
-## 
-## 'gamm' based fit - care required with interpretation.
-## Checks based on working residuals may be misleading.
-## Basis dimension (k) checking results. Low p-value (k-index<1) may
-## indicate that k is too low, especially if edf is close to k'.
-## 
-##              k'  edf k-index p-value
-## s(age.2wk) 9.00 6.62    0.98    0.34
-```
-
-```r
-#Slightly more informative residual plots
-fv <- exp(fitted(m1$lme)) ## predicted values (including re)
-rsd <- (m1$gam$y - fv)/sqrt(fv) ## Pearson residuals (Poisson case)
-op <- par(mfrow=c(1,2))
-qqnorm(rsd);plot(fv^.5,rsd)
-```
-
-![](PlotDrafts_files/figure-html/unnamed-chunk-6-2.png)<!-- -->
-
-```r
-par(op)
+## s(age.2wk) 7.363  8.334 7.069  <2e-16
 ```
 The summary tells us that there is a significant effect of sex (p = 0.0063), and that fecal glucocorticoids change with age (F= 7.33, df = 6.671, p = 6.55e-07). This is what the `anova()` summary also tells us. Everything looks good in the diagnostic plots as well.
 
 <br>
 
-To plot the GAMM correctly, we need to create predicted data sets that account for the individual effects. 
+To plot the GAM correctly, we need to create predicted data sets that account for the individual effects. 
 
 ```r
 library(plyr)
@@ -344,7 +382,7 @@ predDat <- ddply(kids,
                  age.2wk = seq(min(age.2wk), max(age.2wk),length = 284))
 
 #extract predicted values from the model & add them to the data frame
-p1 <- predict(m1$gam, newdata = predDat, se = TRUE)
+p1 <- predict(m1, newdata = predDat, se = TRUE)
 predDat$Fit <- p1$fit
 predDat$SE  <- p1$se.fit
 
@@ -372,6 +410,8 @@ ggplot()+
 
 ```r
   #facet_grid(.~sex, scales = "fixed")
+
+ggsave("./output/fGCByAge_GAM.png")
 ```
 
 We can do the same thing for aggression dealt & received. This isn't working quite how I want it to yet and might need to be a zero inflated model or something.
@@ -382,84 +422,15 @@ kids$an.id <- as.factor(kids$an.id)
 kids$sex <- as.factor(kids$sex)
 
 #I added 1 to the values. Otherwise it freaks out with the ln(0)
-m2 <- gamm(log(wkAggress.rt+1)~sex+s(age.2wk, by = sex) + s(age.2wk, an.id, bs="fs", m=1),
-           family = quasipoisson(link = "log"),
-           random = list(an.id=~1),
-           data = kids)
-```
+# m2 <- gamm(log(wkAggress.rt+1)~sex+s(age.2wk, by = sex) + s(age.2wk, an.id, bs="fs", m=1),
+#            family = quasipoisson(link = "log"),
+#            random = list(an.id=~1),
+#            data = kids)
 
-```
-## 
-##  Maximum number of PQL iterations:  20
-```
-
-```r
-summary(m2$gam)
-```
-
-```
-## 
-## Family: quasipoisson 
-## Link function: log 
-## 
-## Formula:
-## log(wkAggress.rt + 1) ~ sex + s(age.2wk, by = sex) + s(age.2wk, 
-##     an.id, bs = "fs", m = 1)
-## 
-## Parametric coefficients:
-##             Estimate Std. Error t value Pr(>|t|)    
-## (Intercept) -1.54780    0.13580 -11.398   <2e-16 ***
-## sexMale     -0.07399    0.19569  -0.378    0.706    
-## ---
-## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
-## 
-## Approximate significance of smooth terms:
-##                        edf Ref.df     F p-value
-## s(age.2wk):sexFemale  1.00      1 2.106   0.148
-## s(age.2wk):sexMale    1.00      1 0.003   0.954
-## s(age.2wk,an.id)     20.15     NA    NA      NA
-## 
-## R-sq.(adj) =  0.0996   
-##   Scale est. = 0.43157   n = 379
-```
-
-```r
-plot(m2$gam)
-```
-
-![](PlotDrafts_files/figure-html/unnamed-chunk-8-1.png)<!-- -->![](PlotDrafts_files/figure-html/unnamed-chunk-8-2.png)<!-- -->![](PlotDrafts_files/figure-html/unnamed-chunk-8-3.png)<!-- -->
-
-```r
-par(mfrow = c(2,2))
-gam.check(m2$gam)
-```
-
-![](PlotDrafts_files/figure-html/unnamed-chunk-8-4.png)<!-- -->
-
-```
-## 
-## 'gamm' based fit - care required with interpretation.
-## Checks based on working residuals may be misleading.
-## Basis dimension (k) checking results. Low p-value (k-index<1) may
-## indicate that k is too low, especially if edf is close to k'.
-## 
-##                         k'   edf k-index p-value  
-## s(age.2wk):sexFemale   9.0   1.0    0.85   0.065 .
-## s(age.2wk):sexMale     9.0   1.0    0.85   0.070 .
-## s(age.2wk,an.id)     459.0  20.1    0.85   0.050 *
-## ---
-## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
-```
-The model check on this looks terrible. Q-Q plot shows a lot of kurtosis (s-curve), and the histogram of the residuals is really skewed. May no log fit?
-
-
-
-```r
-#I added 1 to the values. Otherwise it freaks out with the ln(0)
-m2a <- gamm(wkAggress.rt~sex+s(age.2wk),
-                     random = list(an.id=~1),
+m2 <- gam(wkAggress.rt~sex+s(age.2wk),
+           correlation=corAR1(),
                      data = kids)
-summary(m2a$gam)
+summary(m2)
 ```
 
 ```
@@ -472,55 +443,80 @@ summary(m2a$gam)
 ## 
 ## Parametric coefficients:
 ##             Estimate Std. Error t value Pr(>|t|)    
-## (Intercept)  0.37641    0.06432   5.852 1.06e-08 ***
-## sexMale     -0.06941    0.09044  -0.767    0.443    
+## (Intercept)  0.39409    0.05294   7.444 6.74e-13 ***
+## sexMale     -0.10775    0.07561  -1.425    0.155    
 ## ---
 ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 ## 
 ## Approximate significance of smooth terms:
-##            edf Ref.df     F p-value
-## s(age.2wk)   1      1 1.285   0.258
+##              edf Ref.df     F p-value
+## s(age.2wk) 1.619  2.011 1.583   0.211
 ## 
-## R-sq.(adj) =  0.00375   
-##   Scale est. = 0.48801   n = 379
+## R-sq.(adj) =  0.00661   Deviance explained = 1.35%
+## GCV = 0.52263  Scale est. = 0.51764   n = 379
 ```
 
 ```r
-plot(m2a$gam)
+plot(m2)
 ```
 
-![](PlotDrafts_files/figure-html/unnamed-chunk-9-1.png)<!-- -->
+![](PlotDrafts_files/figure-html/unnamed-chunk-8-1.png)<!-- -->
 
 ```r
 par(mfrow = c(2,2))
-gam.check(m2a$gam)
+gam.check(m2)
 ```
 
-![](PlotDrafts_files/figure-html/unnamed-chunk-9-2.png)<!-- -->
+![](PlotDrafts_files/figure-html/unnamed-chunk-8-2.png)<!-- -->
 
 ```
 ## 
-## 'gamm' based fit - care required with interpretation.
-## Checks based on working residuals may be misleading.
+## Method: GCV   Optimizer: magic
+## Smoothing parameter selection converged after 8 iterations.
+## The RMS GCV score gradient at convergence was 2.196239e-06 .
+## The Hessian was positive definite.
+## Model rank =  11 / 11 
+## 
 ## Basis dimension (k) checking results. Low p-value (k-index<1) may
 ## indicate that k is too low, especially if edf is close to k'.
 ## 
-##            k' edf k-index p-value
-## s(age.2wk)  9   1    0.96    0.19
+##              k'  edf k-index p-value
+## s(age.2wk) 9.00 1.62    0.96     0.2
 ```
 
+```r
+anova(m2)
+```
 
-This isn't great either.
+```
+## 
+## Family: gaussian 
+## Link function: identity 
+## 
+## Formula:
+## wkAggress.rt ~ sex + s(age.2wk)
+## 
+## Parametric Terms:
+##     df     F p-value
+## sex  1 2.031   0.155
+## 
+## Approximate significance of smooth terms:
+##              edf Ref.df     F p-value
+## s(age.2wk) 1.619  2.011 1.583   0.211
+```
+The model check on this doesn't looks great, but overall there is no effect of sex or age on the aggression rates. 
+
+
 
 ```r
 #Create a data frame to hold the predicted data.
 predDat <- ddply(kids, 
-                 .(sex, an.id), 
+                 .(sex), 
                  summarize,
                  age.2wk = seq(min(age.2wk), max(age.2wk),length = 284))
 
 #extract predicted values from the model & add them to the data frame
-p1 <- predict(m2$gam, newdata = predDat, se = TRUE)
+p1 <- predict(m2, newdata = predDat, se = TRUE)
 predDat$Fit <- p1$fit
 predDat$SE  <- p1$se.fit
 
@@ -544,15 +540,28 @@ ggplot()+
   theme_bw()
 ```
 
-![](PlotDrafts_files/figure-html/unnamed-chunk-10-1.png)<!-- -->
-
+![](PlotDrafts_files/figure-html/unnamed-chunk-9-1.png)<!-- -->
 
 ```r
+ggsave("./output/AggressionByAge_GAM.png")
+```
+
+How about aggression received?
+
+```r
+kids$an.id <- as.factor(kids$an.id)
+kids$sex <- as.factor(kids$sex)
+
 #I added 1 to the values. Otherwise it freaks out with the ln(0)
-m3 <- gamm(log(wkAggRcv.rt+1)~sex+s(age.2wk),
-                     random = list(an.id=~1),
+# m2 <- gamm(log(wkAggress.rt+1)~sex+s(age.2wk, by = sex) + s(age.2wk, an.id, bs="fs", m=1),
+#            family = quasipoisson(link = "log"),
+#            random = list(an.id=~1),
+#            data = kids)
+
+m3 <- gam(wkAggRcv.rt~sex+s(age.2wk),
+           correlation=corAR1(),
                      data = kids)
-summary(m3$gam)
+summary(m3)
 ```
 
 ```
@@ -561,28 +570,76 @@ summary(m3$gam)
 ## Link function: identity 
 ## 
 ## Formula:
-## log(wkAggRcv.rt + 1) ~ sex + s(age.2wk)
+## wkAggRcv.rt ~ sex + s(age.2wk)
 ## 
 ## Parametric coefficients:
 ##             Estimate Std. Error t value Pr(>|t|)    
-## (Intercept)  0.49584    0.04079  12.157   <2e-16 ***
-## sexMale     -0.08093    0.05730  -1.412    0.159    
+## (Intercept)  0.88705    0.07987  11.106   <2e-16 ***
+## sexMale     -0.20100    0.11646  -1.726   0.0852 .  
 ## ---
 ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 ## 
 ## Approximate significance of smooth terms:
-##            edf Ref.df     F p-value
-## s(age.2wk)   1      1 0.007   0.931
+##              edf Ref.df     F p-value  
+## s(age.2wk) 6.919  7.961 1.799  0.0746 .
+## ---
+## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 ## 
-## R-sq.(adj) =  0.00235   
-##   Scale est. = 0.18279   n = 379
+## R-sq.(adj) =  0.0329   Deviance explained = 5.31%
+## GCV = 1.1531  Scale est. = 1.126     n = 379
 ```
 
 ```r
-plot(m3$gam)
+plot(m3)
 ```
 
-![](PlotDrafts_files/figure-html/unnamed-chunk-11-1.png)<!-- -->
+![](PlotDrafts_files/figure-html/unnamed-chunk-10-1.png)<!-- -->
+
+```r
+par(mfrow = c(2,2))
+gam.check(m3)
+```
+
+![](PlotDrafts_files/figure-html/unnamed-chunk-10-2.png)<!-- -->
+
+```
+## 
+## Method: GCV   Optimizer: magic
+## Smoothing parameter selection converged after 10 iterations.
+## The RMS GCV score gradient at convergence was 7.034799e-06 .
+## The Hessian was positive definite.
+## Model rank =  11 / 11 
+## 
+## Basis dimension (k) checking results. Low p-value (k-index<1) may
+## indicate that k is too low, especially if edf is close to k'.
+## 
+##              k'  edf k-index p-value
+## s(age.2wk) 9.00 6.92    1.03    0.77
+```
+
+```r
+anova(m3)
+```
+
+```
+## 
+## Family: gaussian 
+## Link function: identity 
+## 
+## Formula:
+## wkAggRcv.rt ~ sex + s(age.2wk)
+## 
+## Parametric Terms:
+##     df     F p-value
+## sex  1 2.979  0.0852
+## 
+## Approximate significance of smooth terms:
+##              edf Ref.df     F p-value
+## s(age.2wk) 6.919  7.961 1.799  0.0746
+```
+The model check on this doesn't looks great, but overall there is no effect of sex or age on the aggression rates. 
+
+
 
 ```r
 #Create a data frame to hold the predicted data.
@@ -592,7 +649,7 @@ predDat <- ddply(kids,
                  age.2wk = seq(min(age.2wk), max(age.2wk),length = 284))
 
 #extract predicted values from the model & add them to the data frame
-p1 <- predict(m3$gam, newdata = predDat, se = TRUE)
+p1 <- predict(m3, newdata = predDat, se = TRUE)
 predDat$Fit <- p1$fit
 predDat$SE  <- p1$se.fit
 
@@ -600,7 +657,7 @@ predDat$SE  <- p1$se.fit
 ggplot()+
   geom_point(data = kids, 
              aes(x = age.2wk, 
-                 y = log(wkAggRcv.rt+1), 
+                 y = log(wkAggress.rt+1), 
                  color = sex))+
   labs(x = "age (weeks)", y = expression(paste("weekly aggression received rate", sep = "")))+
   geom_line(data = predDat, 
@@ -616,4 +673,8 @@ ggplot()+
   theme_bw()
 ```
 
-![](PlotDrafts_files/figure-html/unnamed-chunk-11-2.png)<!-- -->
+![](PlotDrafts_files/figure-html/unnamed-chunk-11-1.png)<!-- -->
+
+```r
+ggsave("./output/AggressionReceivedByAge.png")
+```
